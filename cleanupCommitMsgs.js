@@ -2,11 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 const semanticCommitHeaders = [
-    'feat',
-    'chore',
-    'fix', 
-    'refactor', 
-    'test',
+    "feat",     // new feature
+    "fix",      // bug fix
+    "refactor", // refactoring production code
+    "style",    // formatting, missing semi colons, etc; no code change
+    "docs",     // changes to documentation
+    "test",     // adding or refactoring tests; no production code change
+    "chore",    // updating grunt tasks etc; no production code change
 ];
 
 const semanticHeadRegex = semanticCommitHeaders.map((header) => { return new RegExp(`^${header}:`, 'ig'); });
@@ -83,7 +85,7 @@ function handleCommitMsg(msgString, strict = false) {
     const msgLines = msgString.split('\n');
 
     let cleanupMsg = cleanupDuplicates(msgLines);
-    
+
     if (strict) {
         cleanupMsg = cleanupMsg.filter(isLineSemantic);
     }
@@ -95,13 +97,13 @@ function handleCommitMsg(msgString, strict = false) {
 }
 
 function argsContainsAnyOfKeys(args, ...keys) {
-    return keys.some((key) => { 
+    return keys.some((key) => {
         return args.includes(key);
     });
 }
 
 function getArgValue(args, ...keys) {
-    const idx = args.findIndex((arg) => { 
+    const idx = args.findIndex((arg) => {
         return keys.includes(arg);
     });
 
@@ -115,13 +117,13 @@ function runFromCommandLine() {
 
     const SCRIPT_FILENAME =  path.basename(scriptName);
     let COMMIT_MSG_FILENAME = DEFAULT_MSG_FILENAME;
-    
+
     let STRICT_FILTERING = false;
 
     if (argsContainsAnyOfKeys(args, '-s', '--strict')) {
         STRICT_FILTERING = true;
     }
-    
+
     if (argsContainsAnyOfKeys(args, '-i', '--input')) {
         const argValue = getArgValue(args, '-i', '--input');
 
@@ -135,7 +137,7 @@ function runFromCommandLine() {
 
     if (argsContainsAnyOfKeys(args, '-h', '--help')) {
         let helpMsg = '';
-    
+
         helpMsg += `Usage:\t\tnode ${SCRIPT_FILENAME} [OPTIONS]\n`;
         helpMsg += '\n';
         helpMsg += `Small util to cleanup commit messages and print them out in stdout. \n`;
@@ -145,11 +147,11 @@ function runFromCommandLine() {
         helpMsg += `Optional arguments:\n`;
         helpMsg += `  -i,\t --input\tpath to plain text file with listed raw commit messages, relative to script file (default: ${DEFAULT_MSG_FILENAME})\n`;
         helpMsg += `  -s,\t --strict\tremoves commit lines that does not start with: ${semanticCommitHeaders.join(', ')}\n`;
-    
+
         console.log(helpMsg);
         process.exit(0);
     }
-    
+
     console.log(`\nLOOKING FOR FILE: ${COMMIT_MSG_FILENAME}\n(can be changed by passing as first parameter)\n\n`);
 
     fs.readFile(COMMIT_MSG_FILENAME, 'utf8', (err, fd) => {
@@ -158,10 +160,10 @@ function runFromCommandLine() {
                 console.error(`$${COMMIT_MSG_FILENAME} does not exist`);
                 return;
             }
-    
+
             throw err;
         }
-    
+
         const cleanedCommitMsg = handleCommitMsg(fd, STRICT_FILTERING);
         printMsgsToStdOut(cleanedCommitMsg);
     });
